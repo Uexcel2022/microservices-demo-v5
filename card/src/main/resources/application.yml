@@ -73,3 +73,4 @@ logging:
     com:
       eazybytes:
         card: DEBUG
+

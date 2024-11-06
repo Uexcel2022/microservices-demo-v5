@@ -6,6 +6,8 @@ import com.eazybytes.accounts.dto.CustomerDto;
 import com.eazybytes.accounts.dto.ErrorResponseDto;
 import com.eazybytes.accounts.dto.ResponseDto;
 import com.eazybytes.accounts.service.IAccountService;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import io.github.resilience4j.retry.annotation.Retry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 @Tag(
         name = "CRUD REST APIs FOR EazyBank",
@@ -216,6 +219,7 @@ public class AccountsController {
             }
     )
     @GetMapping("/build-info")
+    @RateLimiter(name = "getBuildVersion",fallbackMethod = "getBuildVersionFallBack")
     public ResponseEntity<Map<String,String>> getBuildVersion(){
         Map<String,String> versionInfo = new LinkedHashMap<>();
         versionInfo.put("Name","Eazy Bank Account Microservice");
@@ -223,6 +227,15 @@ public class AccountsController {
         versionInfo.put("Build Date", "2024-10-20");
         return ResponseEntity.ok(versionInfo);
     }
+
+    public ResponseEntity<Map<String,String>> getBuildVersionFallBack(Throwable throwable){
+        Map<String,String> versionInfo = new LinkedHashMap<>();
+        versionInfo.put("Name","Eazy Bank Account Microservice");
+        versionInfo.put("version", "****");
+        versionInfo.put("Build Date", "****");
+        return ResponseEntity.ok(versionInfo);
+    }
+
 
 
     @Operation(
@@ -252,12 +265,23 @@ public class AccountsController {
                     )
             }
     )
+    @Retry(name = "getJavaVersionInfo",fallbackMethod = "getJavaVersionInfoFallback")
     @GetMapping("/java-version")
     public ResponseEntity<Map<String,String>> getJavaVersionInfo(){
         Map<String,String> javaInfo = new  LinkedHashMap<>();
         javaInfo.put("JDK",env.getProperty("java.version"));
+        logger.debug("invoked getJavaVersionInfo");
         return ResponseEntity.ok(javaInfo);
     }
+
+    public ResponseEntity<Map<String,String>> getJavaVersionInfoFallback(Throwable e){
+        Map<String,String> javaInfo = new  LinkedHashMap<>();
+        javaInfo.put("JDK","17.*.*");
+        logger.debug("invoked getJavaVersionInfoFallback");
+        return ResponseEntity.ok(javaInfo);
+    }
+
+
 
     @Operation(
             summary = "REST API to Fetch Contact",

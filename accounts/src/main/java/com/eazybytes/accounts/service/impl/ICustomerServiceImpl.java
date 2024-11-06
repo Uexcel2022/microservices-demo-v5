@@ -16,6 +16,8 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,9 +28,8 @@ public class ICustomerServiceImpl implements ICustomerService {
     private static final Logger log = LoggerFactory.getLogger(ICustomerServiceImpl.class);
     private final CustomerRepository customerRepository;
     private final AccountRepository accountRepository;
-    private  final LoanFeignClient loanFeignClient;
-    private  final CardFeignClient cardFeignClient;
-
+    private  final LoanFeignClient loanFallback;
+    private  final CardFeignClient cardFallback;
     /**
      * @param mobileNumber - customer mobile mobile
      * @return - Returns customer details with customerDetailsDto
@@ -52,12 +53,17 @@ public class ICustomerServiceImpl implements ICustomerService {
                                 customer.getCustomerId().toString()));
 
         CustomerDetailsDto customerDetailsDto = CustomerMapper.mapToCustomerDetailsDto(customer,new CustomerDetailsDto());
+
         customerDetailsDto.setAccountDto(AccountMapper.mapToAccountDto(account));
 
-        CardDto cardDto = cardFeignClient.fetchCard(correlationId, mobileNumber).getBody();
-        customerDetailsDto.setCardDto(cardDto);
-        LoanDto loanDto = loanFeignClient.getLoanDetails(correlationId ,mobileNumber).getBody();
-        customerDetailsDto.setLoanDto(loanDto);
+        ResponseEntity<CardDto> cardDto  = cardFallback.fetchCard(correlationId, mobileNumber);
+        if(cardDto != null){
+            customerDetailsDto.setCardDto(cardDto.getBody());
+        }
+        ResponseEntity<LoanDto> loanDto = loanFallback.getLoanDetails(correlationId ,mobileNumber);
+        if(loanDto != null) {
+            customerDetailsDto.setLoanDto(loanDto.getBody());
+        }
         log.debug("eazybank-correlation-id found: {}", correlationId);
         return customerDetailsDto;
     }
