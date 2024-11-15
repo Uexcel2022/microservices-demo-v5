@@ -78,6 +78,7 @@ logging:
     com:
       eazybytes:
         accounts: DEBUG
+
 resilience4j:
   circuitbreaker:
     configs:

@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
+
 
 @Tag(
         name = "CRUD REST APIs FOR EazyBank",
