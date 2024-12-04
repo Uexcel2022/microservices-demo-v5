@@ -80,29 +80,29 @@ services:
       file: common-config.yml
       service: network-deploy-service
 
+  tempo:
+    image: grafana/tempo
+    container_name: tempo
+    command: -config.file /etc/tempo-config.yml
+    ports:
+      - "3110:3100"
+      - "4317:4317"
+    volumes:
+      - ../observability/tempo/tempo.yml:/etc/tempo-config.yml
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
   prometheus:
     image: prom/prometheus:v2.50.1
     container_name: prometheus
     ports:
       - "9090:9090"
     volumes:
-      - ../observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     extends:
       file: common-config.yml
       service: network-deploy-service
-
-#    tempo:
-#      image: grafana/tempo:2.4.2
-#      container_name: tempo
-#      command: -config.file /etc/tempo-config.yml
-#      ports:
-#        - "3110:3100"
-#        - "4317:4317"
-#      volumes:
-#        - ../observability/tempo/tempo.yml:/etc/tempo-config.yml
-#      extends:
-#        file: common-config.yml
-#        service: network-deploy-service
 
 
   grafana:
@@ -117,24 +117,11 @@ services:
       - sh
       - -euc
       - |
-#        mkdir -p /etc/grafana/provisioning/datasources
-#        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
-#        apiVersion: 1
-#        datasources:
-#          - name: Loki
-#            type: loki
-#            access: proxy
-#            url: http://gateway:3100
-#            jsonData:
-#              httpHeaderName1: "X-Scope-OrgID"
-#            secureJsonData:
-#              httpHeaderValue1: "tenant1"
-#        EOF
         /run.sh
     ports:
       - "3000:3000"
     volumes:
-      - ./observability/grafana/datasource.yml/etc/grafana/provisioning/datasources/datasource.yml
+      - ./observability/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
     healthcheck:
       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1" ]
       interval: 10s
@@ -243,6 +230,8 @@ services:
     extends:
       file: common-config.yml
       service: microservice-base-config
+    environment:
+      OTEL_SERVICE_NAME: "configserver"
 
   redis:
     image: redis
@@ -255,6 +244,8 @@ services:
     extends:
       file: common-config.yml
       service: network-deploy-service
+#    environment:
+#      OTEL_SERVICE_NAME: "redis"
 
 
   eurekaserver:
@@ -264,15 +255,16 @@ services:
       - "8070:8070"
     healthcheck:
       test: "curl --fail --silent localhost:8070/actuator/health/readiness | grep UP || exit 1"
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 10
+      retries: 20
       start_period: 10s
     extends:
       file: common-config.yml
       service: microservice-configserver-config
     environment:
       SPRING_APPLICATION_NAME: "eurekaserver"
+      OTEL_SERVICE_NAME: "eurekaserver"
 
   accounts:
     image: "uexcel247/accounts:s11"
@@ -287,10 +279,10 @@ services:
       start_period: 10s
     environment:
       SPRING_APPLICATION_NAME: "accounts"
+      OTEL_SERVICE_NAME: "accounts"
     extends:
       file: common-config.yml
       service: microservice-configserver-eurekaserver-config
-
 
   loan:
     image: "uexcel247/loan:s11"
@@ -299,16 +291,16 @@ services:
       - "8090:8090"
     healthcheck:
       test: "curl --fail --silent localhost:8090/actuator/health/readiness | grep UP || exit 1"
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 10
+      retries: 20
       start_period: 10s
     environment:
       SPRING_APPLICATION_NAME: "loan"
+      OTEL_SERVICE_NAME: "loan"
     extends:
       file: common-config.yml
       service: microservice-configserver-eurekaserver-config
-
 
   card:
     image: "uexcel247/card:s11"
@@ -323,6 +315,7 @@ services:
       start_period: 10s
     environment:
       SPRING_APPLICATION_NAME: "card"
+      OTEL_SERVICE_NAME: "card"
     extends:
       file: common-config.yml
       service: microservice-configserver-eurekaserver-config
@@ -343,6 +336,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "gatewayserver"
+      OTEL_SERVICE_NAME: "gatewayserver"
       SPRING_DATA_REDIS_CONNECT-TIMEOUT: 2S
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379

@@ -10,11 +10,11 @@ scrape_configs:
   - job_name: 'loan'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: [ 'loans:8090' ]
+      - targets: [ 'loan:8090' ]
   - job_name: 'card'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: [ 'cards:9000' ]
+      - targets: [ 'card:9000' ]
   - job_name: 'gatewayserver'
     metrics_path: '/actuator/prometheus'
     static_configs:

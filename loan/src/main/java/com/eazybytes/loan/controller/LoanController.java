@@ -124,8 +124,10 @@ public class LoanController {
     public ResponseEntity<LoanDto> getLoanDetails(@RequestHeader("eazybank-correlation-id") String correlationId,
                                                   @RequestParam String mobileNumber) {
         iLoanService.validateMobileNumber(mobileNumber);
+        logger.info("fetchLoanDetails method starts");
         LoanDto loanDto = iLoanService.fetchLoanDetails(mobileNumber);
-        logger.debug("eazybank-correlation-id found: {}", correlationId);
+//        logger.debug("eazybank-correlation-id found: {}", correlationId);
+        logger.info("fetchLoanDetails method ends");
         return ResponseEntity.ok().body(loanDto);
     }
 

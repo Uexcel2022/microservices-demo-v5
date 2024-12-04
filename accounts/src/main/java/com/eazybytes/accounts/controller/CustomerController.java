@@ -55,8 +55,10 @@ public class CustomerController {
     @GetMapping("/customerDetails")
     public ResponseEntity<CustomerDetailsDto> getCustomerDetails(@RequestHeader("eazybank-correlation-id") String correlationId ,
                                                                  @RequestParam String mobileNumber) {
-        log.debug("eazybank-correlation-id found: {}", correlationId);
-       return ResponseEntity.ok().body(customerService.getCustomerDetails(mobileNumber,correlationId));
+        log.info("getCustomerDetails method starts");
+       CustomerDetailsDto dto = customerService.getCustomerDetails(mobileNumber,correlationId);
+        log.info("getCustomerDetails method ends");
+       return ResponseEntity.ok().body(dto);
 
     }
 }

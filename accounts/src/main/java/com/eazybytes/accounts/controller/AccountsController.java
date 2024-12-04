@@ -107,8 +107,10 @@ public class AccountsController {
     public ResponseEntity<CustomerDto> fetchCustomer(@RequestHeader("eazybank-correlation-id") String correlationId,
                                                      @RequestParam("mobileNumber") String mobileNumber){
         iAccountService.validateMobileNumber(mobileNumber);
+        logger.info("getCustomerByMobileNumber details method starts");
         CustomerDto customerDto = iAccountService.getCustomerByMobileNumber(mobileNumber);
-        logger.debug("eazybank-correlation-id found: {}", correlationId);
+//        logger.debug("eazybank-correlation-id found: {}", correlationId);
+        logger.info("getCustomerByMobileNumber details method ends");
         return ResponseEntity.ok().body(customerDto);
     }
 

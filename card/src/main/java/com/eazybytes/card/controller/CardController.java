@@ -120,8 +120,10 @@ public class CardController {
     public ResponseEntity<CardDto> fetchCard(@RequestHeader("eazybank-correlation-id") String correlationId,
                                              @RequestParam String mobileNumber) {
         iCardService.validateMobileNumber(mobileNumber);
+        logger.info("getCardDetails method starts");
         CardDto cardDto = iCardService.getCardDetails(mobileNumber);
-        logger.debug("eazybank-correlation-id found: {}", correlationId);
+//        logger.debug("eazybank-correlation-id found: {}", correlationId);
+        logger.info("getCardDetails method ends");
         return   ResponseEntity.ok().body(cardDto);
     }
 
