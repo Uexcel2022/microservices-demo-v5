@@ -92,7 +92,6 @@ public class GatewayserverApplication {
 	}
 
 
-
 	private String formatDate(Date date) {
 		SimpleDateFormat sdf = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss z");
 		return sdf.format(date);
